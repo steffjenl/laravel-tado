@@ -15,20 +15,20 @@ class Tado
 
     private function login()
     {
-        if (empty(config('tado.clientid', $this->clientId))) {
-            throw new \Exception("Tado Client-ID not fount in config file");
+        if (empty(config('tado.clientId'))) {
+            throw new \Exception("Tado Client-ID not found in config file");
         }
 
-        if (empty(config('tado.clientsecret', $this->clientSecret))) {
-            throw new \Exception("Tado Client-Secret not fount in config file");
+        if (empty(config('tado.clientSecret'))) {
+            throw new \Exception("Tado Client-Secret not found in config file");
         }
 
-        if (empty(config('tado.username', $this->userName))) {
-            throw new \Exception("Tado Username not fount in config file");
+        if (empty(config('tado.username'))) {
+            throw new \Exception("Tado Username not found in config file");
         }
 
-        if (empty(config('tado.password', $this->passWord))) {
-            throw new \Exception("Tado Password not fount in config file");
+        if (empty(config('tado.password'))) {
+            throw new \Exception("Tado Password not found in config file");
         }
 
         $client = new Client();
