@@ -1,0 +1,280 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Tado",
+		"_postman_id": "02725fac-432e-9ad0-2610-7b7464fe74c4",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Homes",
+			"description": "",
+			"item": [
+				{
+					"name": "MobileDevices",
+					"description": "",
+					"item": [
+						{
+							"name": "https://my.tado.com/api/v2/homes/{{homeid}}/mobileDevices",
+							"request": {
+								"url": "https://my.tado.com/api/v2/homes/{{homeid}}/mobileDevices",
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"description": ""
+									}
+								],
+								"body": {},
+								"description": ""
+							},
+							"response": []
+						},
+						{
+							"name": "https://my.tado.com/api/v2/homes/{{homeid}}/mobileDevices/{{deviceId}}",
+							"request": {
+								"url": "https://my.tado.com/api/v2/homes/{{homeid}}/mobileDevices/{{deviceId}}",
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"description": ""
+									}
+								],
+								"body": {},
+								"description": ""
+							},
+							"response": []
+						},
+						{
+							"name": "https://my.tado.com/api/v2/homes/{{homeid}}/mobileDevices/{{deviceId}}/settings",
+							"request": {
+								"url": "https://my.tado.com/api/v2/homes/{{homeid}}/mobileDevices/{{deviceId}}/settings",
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"description": ""
+									}
+								],
+								"body": {},
+								"description": ""
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "https://my.tado.com/api/v2/homes/{{homeid}}",
+					"request": {
+						"url": "https://my.tado.com/api/v2/homes/{{homeid}}",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "https://my.tado.com/api/v2/homes/{{homeid}}/users",
+					"request": {
+						"url": "https://my.tado.com/api/v2/homes/{{homeid}}/users",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "https://my.tado.com/api/v2/homes/{{homeid}}/weather",
+					"request": {
+						"url": "https://my.tado.com/api/v2/homes/{{homeid}}/weather",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "https://my.tado.com/api/v2/homes/{{homeid}}/devices",
+					"request": {
+						"url": "https://my.tado.com/api/v2/homes/{{homeid}}/devices",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "https://my.tado.com/api/v2/homes/{{homeid}}/installations",
+					"request": {
+						"url": "https://my.tado.com/api/v2/homes/{{homeid}}/installations",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "https://my.tado.com/api/v2/homes/{{homeid}}/zones",
+					"request": {
+						"url": "https://my.tado.com/api/v2/homes/{{homeid}}/zones",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "https://my.tado.com/api/v2/homes/{{homeid}}/zones/1/state",
+					"request": {
+						"url": "https://my.tado.com/api/v2/homes/{{homeid}}/zones/1/state",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "https://auth.tado.com/oauth/token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"access_token\", jsonData['access_token']);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "https://auth.tado.com/oauth/token",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "public-api-preview",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "password",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "yourPasswordHere",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "home.user",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "your@email.address",
+							"type": "text"
+						}
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "https://my.tado.com/api/v2/me",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"homeid\", jsonData['homes'][0]['id']);"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "https://my.tado.com/api/v2/me",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer  {{access_token}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
