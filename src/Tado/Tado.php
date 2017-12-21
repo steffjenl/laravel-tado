@@ -49,9 +49,13 @@ class Tado
             $this->setRefreshToken($body->refresh_token);
             return true;
         }
-        catch (GuzzleException $ex)
-        {
-            var_dump($ex->getMessage());
+        catch (GuzzleException $ex) {
+            if (empty($ex->getResponse()->getBody()->getContents()))
+            {
+                throw new TadoException("Can't connect to my.tado.com servers");
+            }
+            $body = json_decode($ex->getResponse()->getBody()->getContents());
+            throw new TadoException($body->error_description);
         }
 
         return false;
