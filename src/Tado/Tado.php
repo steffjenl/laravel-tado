@@ -2,9 +2,9 @@
 
 namespace Tado;
 
-use Carbon\Carbon;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use League\OAuth2\Client\Provider\GenericProvider;
 use Tado\Exception\TadoException;
 
 /**
@@ -23,14 +23,6 @@ class Tado
      * @var  $accessToken
      */
     private $accessToken;
-    /**
-     * @var  $refreshToken
-     */
-    private $refreshToken;
-    /**
-     * @var  $expireToken
-     */
-    private $expireToken;
 
     /**
      * login
@@ -56,50 +48,17 @@ class Tado
             throw new TadoException("Tado Password not found in config file");
         }
 
-        $client = new Client();
-
+        $provider = $this->getProvider();
         try {
-            if (!empty($this->refreshToken)) {
-                $result = $client->post('https://auth.tado.com/oauth/token', [
-                    'form_params' => [
-                        'client_id'     => config('tado.clientId'),
-                        'client_secret' => config('tado.clientSecret'),
-                        'grant_type'    => 'refresh_token',
-                        'scope'         => 'home.user',
-                        'refresh_token' => $this->refreshToken,
-                    ],
-                ]);
-
-                $body = json_decode($result->getBody()->getContents());
-                $this->setAccessToken($body->access_token);
-                $this->setRefreshToken($body->refresh_token);
-                $this->setExpireToken($body->expires_in);
-
-                return true;
-            }
-            $result = $client->post('https://auth.tado.com/oauth/token', [
-                'form_params' => [
-                    'client_id'     => config('tado.clientId'),
-                    'client_secret' => config('tado.clientSecret'),
-                    'grant_type'    => 'password',
-                    'scope'         => 'home.user',
-                    'username'      => config('tado.username'),
-                    'password'      => config('tado.password'),
-                ],
+            $accessToken = $provider->getAccessToken('password', [
+                'username' => config('tado.username'),
+                'password' => config('tado.password'),
+                'scope' => 'home.user',
             ]);
-
-            $body = json_decode($result->getBody()->getContents());
-            $this->setAccessToken($body->access_token);
-            $this->setRefreshToken($body->refresh_token);
-            $this->setExpireToken($body->expires_in);
-
+            $this->setAccessToken($accessToken);
             return true;
-        } catch (GuzzleException $ex) {
-            if (empty($ex->getResponse()->getBody()->getContents())) {
-                throw new TadoException("Can't connect to auth.tado.com servers");
-            }
-            $body = json_decode($ex->getResponse()->getBody()->getContents());
-            throw new TadoException($body->error_description);
+        } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e){
+            throw new TadoException($e->getMessage());
         }
 
         return false;
@@ -108,7 +67,7 @@ class Tado
     /**
      * setAccessToken
      *
-     * @param $accessToken
+     * @param \League\OAuth2\Client\Token\AccessToken $accessToken
      */
     private function setAccessToken($accessToken)
     {
@@ -116,23 +75,16 @@ class Tado
     }
 
     /**
-     * setRefreshToken
-     *
-     * @param $refreshToken
+     * @return GenericProvider
      */
-    private function setRefreshToken($refreshToken)
-    {
-        $this->refreshToken = $refreshToken;
-    }
-
-    /**
-     * setExpireToken
-     *
-     * @param $expireToken
-     */
-    private function setExpireToken($expireToken)
-    {
-        $this->expireToken = (new Carbon())->addSeconds($expireToken);
+    private function getProvider() {
+        return new GenericProvider([
+            'clientId'                => config('tado.clientId'),
+            'clientSecret'            => config('tado.clientSecret'),
+            'urlAuthorize'            => 'https://auth.tado.com/oauth/token',
+            'urlAccessToken'          => 'https://auth.tado.com/oauth/token',
+            'urlResourceOwnerDetails' => null,
+        ]);
     }
 
     /**
@@ -145,31 +97,43 @@ class Tado
      * @return bool|mixed
      * @throws TadoException
      */
-    private function client($methode, $endpoint, $data = [])
+    private function client($methode, $endpoint, $data = '')
     {
-        // when accessToken is empty or token is expired, please login again.
-        if (empty($this->accessToken) || (new Carbon())->diffInSeconds($this->expireToken) < 1) {
+        // when accessToken not exists we must login
+        if (empty($this->accessToken))
+        {
             $this->login();
         }
 
-        $client = new Client();
-
         try {
-            $result = $client->request($methode, $this->rootUrl . $endpoint, [
-                'form_params' => $data,
-                'headers'     => [
-                    'Authorization' => 'Bearer ' . $this->accessToken,
-                ],
-            ]);
+            // get oauth provider
+            $provider = $this->getProvider();
 
-            $body = json_decode($result->getBody()->getContents());
+            // set options for request
+            $options['body'] = json_encode($data);
+            $options['headers']['content-type'] = 'application/json';
 
-            return $body;
+            // prepare guzzle request with authorisation headers
+            $request = $provider->getAuthenticatedRequest(
+                $methode,
+                $this->rootUrl . $endpoint,
+                $this->accessToken,
+                $options
+            );
+
+            // create Guzzle client
+            $client = new Client();
+            // send request to server
+            $response = $client->send($request);
+
+            return json_decode($response->getBody());
+
         } catch (GuzzleException $ex) {
             if (empty($ex->getResponse()->getBody()->getContents())) {
                 throw new TadoException("Can't connect to my.tado.com servers");
             }
-
+            throw new TadoException($ex->getMessage());
+        } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $ex) {
             throw new TadoException($ex->getMessage());
         }
 
