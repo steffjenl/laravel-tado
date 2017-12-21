@@ -1,0 +1,49 @@
+{
+    "name": "steffjenl/laravel-tado",
+    "description": "Laravel package for tado° thermostat",
+    "type": "library",
+    "keywords": [
+        "tado",
+        "thermostat",
+        "client",
+        "laravel",
+        "api"
+    ],
+    "homepage": "http://github.com/steffjenl/laravel-tado",
+    "license": "MIT",
+    "authors": [
+        {
+            "name":  "Stèphan Eizinga",
+            "email": "stephan.eizinga@gmail.com",
+            "role":  "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "illuminate/support": ">=5.4.0",
+        "illuminate/console": ">=5.4.0"
+    },
+    "require-dev": {
+        "mockery/mockery": "0.8.0",
+        "phpunit/PHPUnit": "3.7.25",
+        "squizlabs/php_codesniffer": "1.4.6"
+    },
+    "suggest": {
+        "ext-curl": "Allows usage of cURL transport adapter"
+    },
+    "autoload": {
+        "psr-0": {
+            "Tado": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Tado\\TadoServiceProvider"
+            ],
+            "aliases": {
+                "Tado": "Tado\\Facade"
+            }
+        }
+    }
+}
