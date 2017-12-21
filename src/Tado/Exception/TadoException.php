@@ -1,7 +1,7 @@
 <?php
 namespace Tado\Exception;
 
-class TadoException extends Exception
+class TadoException extends \Exception
 {
     // Redefine the exception so message isn't optional
     public function __construct($message, $code = 0)
