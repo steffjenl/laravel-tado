@@ -8,6 +8,7 @@ use Tado\Exception\TadoException;
 
 class Tado
 {
+    private $rootUrl = 'https://my.tado.com/api';
     private $accessToken;
     private $refreshToken;
     private $expireToken;
@@ -71,15 +72,39 @@ class Tado
         $this->refreshToken = $refreshToken;
     }
 
-    private function client($methode, $endpoint, $data)
+    private function client($methode, $endpoint, $data = [])
     {
-        //
+        $client = new Client();
+
+        try {
+            $result = $client->request($methode, $this->rootUrl . $endpoint, [
+                'form_params' => $data,
+                'Authorization' => 'Bearer ' . $this->accessToken
+            ]);
+
+            $body = json_decode($result->getBody()->getContents());
+            return $body;
+        }
+        catch (GuzzleException $ex) {
+            if (empty($ex->getResponse()->getBody()->getContents()))
+            {
+                throw new TadoException("Can't connect to my.tado.com servers");
+            }
+            $body = json_decode($ex->getResponse()->getBody()->getContents());
+            throw new TadoException($body->error_description);
+        }
+        return false;
     }
 
-    public function getTemprature()
+    public function getHomesZonesState($homeId,$zone)
     {
+        if (empty($this->accessToken))
+        {
+            $this->login();
+        }
 
-        return $this->login();
+        $data   = $this->client('get', '/v2/homes/150056/zones/1/state');
+        return $data;
 
     }
 
