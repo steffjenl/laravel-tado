@@ -34,8 +34,8 @@ class Tado
         $client = new Client();
         $result = $client->post('https://auth.tado.com/oauth/token', [
             'form_params' => [
-                'client_id'     => config('tado.clientid'),
-                'client_secret' => config('tado.clientsecret'),
+                'client_id'     => config('tado.clientId'),
+                'client_secret' => config('tado.clientSecret'),
                 'grant_type'    => 'password',
                 'scope'         => 'home.user',
                 'username'      => config('tado.username'),
