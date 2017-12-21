@@ -2,6 +2,7 @@
 
 namespace Tado;
 
+use Carbon\Carbon;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
 use Tado\Exception\TadoException;
@@ -58,6 +59,24 @@ class Tado
         $client = new Client();
 
         try {
+            if (!empty($this->refreshToken)) {
+                $result = $client->post('https://auth.tado.com/oauth/token', [
+                    'form_params' => [
+                        'client_id'     => config('tado.clientId'),
+                        'client_secret' => config('tado.clientSecret'),
+                        'grant_type'    => 'refresh_token',
+                        'scope'         => 'home.user',
+                        'refresh_token' => $this->refreshToken,
+                    ],
+                ]);
+
+                $body = json_decode($result->getBody()->getContents());
+                $this->setAccessToken($body->access_token);
+                $this->setRefreshToken($body->refresh_token);
+                $this->setExpireToken($body->expires_in);
+
+                return true;
+            }
             $result = $client->post('https://auth.tado.com/oauth/token', [
                 'form_params' => [
                     'client_id'     => config('tado.clientId'),
@@ -66,17 +85,17 @@ class Tado
                     'scope'         => 'home.user',
                     'username'      => config('tado.username'),
                     'password'      => config('tado.password'),
-                ]
+                ],
             ]);
 
             $body = json_decode($result->getBody()->getContents());
             $this->setAccessToken($body->access_token);
             $this->setRefreshToken($body->refresh_token);
+            $this->setExpireToken($body->expires_in);
+
             return true;
-        }
-        catch (GuzzleException $ex) {
-            if (empty($ex->getResponse()->getBody()->getContents()))
-            {
+        } catch (GuzzleException $ex) {
+            if (empty($ex->getResponse()->getBody()->getContents())) {
                 throw new TadoException("Can't connect to auth.tado.com servers");
             }
             $body = json_decode($ex->getResponse()->getBody()->getContents());
@@ -107,6 +126,16 @@ class Tado
     }
 
     /**
+     * setExpireToken
+     *
+     * @param $expireToken
+     */
+    private function setExpireToken($expireToken)
+    {
+        $this->expireToken = (new Carbon())->addSeconds($expireToken);
+    }
+
+    /**
      * client
      *
      * @param       $methode
@@ -118,27 +147,32 @@ class Tado
      */
     private function client($methode, $endpoint, $data = [])
     {
+        // when accessToken is empty or token is expired, please login again.
+        if (empty($this->accessToken) || (new Carbon())->diffInSeconds($this->expireToken) < 1) {
+            $this->login();
+        }
+
         $client = new Client();
 
         try {
             $result = $client->request($methode, $this->rootUrl . $endpoint, [
                 'form_params' => $data,
-                'headers' => [
-                    'Authorization1' => 'Bearer ' . $this->accessToken
-                ]
+                'headers'     => [
+                    'Authorization' => 'Bearer ' . $this->accessToken,
+                ],
             ]);
 
             $body = json_decode($result->getBody()->getContents());
+
             return $body;
-        }
-        catch (GuzzleException $ex) {
-            if (empty($ex->getResponse()->getBody()->getContents()))
-            {
+        } catch (GuzzleException $ex) {
+            if (empty($ex->getResponse()->getBody()->getContents())) {
                 throw new TadoException("Can't connect to my.tado.com servers");
             }
 
             throw new TadoException($ex->getMessage());
         }
+
         return false;
     }
 
@@ -150,16 +184,11 @@ class Tado
      *
      * @return bool|mixed
      */
-    public function getHomesZonesState($homeId,$zone)
+    public function getHomesZonesState($homeId, $zone)
     {
-        if (empty($this->accessToken))
-        {
-            $this->login();
-        }
+        $data = $this->client('get', '/v2/homes/' . $homeId . '/zones/' . $zone . '/state');
 
-        $data   = $this->client('get', '/v2/homes/' . $homeId . '/zones/' . $zone . '/state');
         return $data;
-
     }
 
 }
